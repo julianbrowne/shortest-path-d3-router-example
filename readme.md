@@ -7,7 +7,8 @@
 
 ## Instructions
 
-- paste generated code from https://github.com/julianbrowne/shortest-path-d3-mapper-example
+- generated data from https://github.com/julianbrowne/shortest-path-d3-mapper-example
+- paste generated data in the data.js file
 - select source node id
 - select target node id
 - click 'route' button
