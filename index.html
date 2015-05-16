@@ -1,0 +1,251 @@
+<!DOCTYPE HTML>
+<head>
+    <meta charset="utf-8">
+    <title>Shortest Path</title>
+    <link type="text/css" href="style.css" rel="stylesheet" />
+    <script type="text/javascript" src="d3.v3.min.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+</head>
+<body>
+    <h1>Dijkstra's Shortest Path</h1>
+    <div id="graph"></div>
+    <div class="right">
+        <div class="inputs">
+            <label>from</label> <select id="from"></select><br/>
+            <label>to</label>   <select id="to"></select><br/>
+            <button onclick="findRoute()">route</button>
+        </div>
+        <div id="results" class="results">-</div>
+    </div>
+    <script>
+
+        var graph = d3.select('#graph');
+        var fromInput = document.getElementById("from");
+        var toInput = document.getElementById("to");
+
+        var distances = [];
+
+        initialiseDistances();
+        populateDistances();
+
+        nodes.forEach(function(node) { 
+            var fromOption = document.createElement("option");
+            fromOption.text = node.name;
+            fromInput.add(fromOption);
+            var toOption = document.createElement("option");
+            toOption.text = node.name;
+            toInput.add(toOption);
+        });
+
+        var svg = graph.append("svg:svg")
+            .attr("width", 1000)
+            .attr("height", 800)
+
+        var elements = svg.selectAll("g");
+
+        var elementsPathData = elements.data(paths);
+
+        var pathsEnter = elementsPathData
+            .enter()
+                .append("g");
+
+        pathsEnter
+            .append("line")
+                .attr("x1", function(d) { return nodes[d.from].x; })
+                .attr("y1", function(d) { return nodes[d.from].y; })
+                .attr("x2", function(d) { return nodes[d.to].x; })
+                .attr("y2", function(d) { return nodes[d.to].y; })
+
+        pathsEnter
+            .append("text")
+                .attr("x", function(d) { return nodes[d.from].x; })
+                .attr("y", function(d) { return nodes[d.from].y; })
+                .text("la");
+
+        var elementsNodeData = elements.data(nodes);
+
+        var nodesEnter = elementsNodeData
+            .enter()
+                .append("g")
+                .attr("transform", function(d){return "translate("+d.x+","+d.y+")"});
+
+        nodesEnter.append("circle")
+                    .attr("nodeId", function(d,i) {return i })
+                    .attr("r", '15')
+                    .attr("class", "node")
+                    .style("cursor", "pointer")
+                .append("svg:title")
+                    .text(function(d,i) { return d.name });
+
+        nodesEnter.append("text")
+                    .attr("dx", -5)
+                    .attr("dy", 5)
+                    .attr("class", "label")
+                    .text(function(d,i){ return d.name });
+
+        function findRoute() { 
+            var fromNode = fromInput.options[fromInput.selectedIndex].value;
+            var toNode = toInput.options[toInput.selectedIndex].value;
+            console.log("routing from %s to %s", fromNode, toNode);
+            var results = dijkstra(fromNode, toNode);
+            printResults(results);
+        };
+
+        function printResults(results) { 
+            var target = document.getElementById("results");
+            while (target.hasChildNodes()) target.removeChild(target.lastChild);
+            var title = document.createElement("h4");
+            title.innerHTML = "Route from " + results.source + " to " + results.target;
+            var summary = document.createElement("p");
+            summary.innerHTML = "Found route: " + results.mesg;
+            var pathList = document.createElement("ul");
+            if(results.path) {
+                results.path.forEach(function(step) { 
+                    var stepItem = document.createElement("li");
+                    var dist = distances[step.source][step.target]
+                    stepItem.innerHTML = "from " + step.source + " to " + step.target + " (" + dist + " units)";
+                    pathList.appendChild(stepItem);
+                });
+            }
+            var distance = document.createElement("p");
+            distance.innerHTML = "Total distance: " + results.distance + " units";
+            target.appendChild(title);
+            target.appendChild(summary);
+            target.appendChild(pathList);
+            target.appendChild(distance);
+        };
+
+        function initialiseDistances() { 
+            for (var i = 0; i < this.nodes.length; i++) { 
+                this.distances[i] = [];
+                for (var j = 0; j < this.nodes.length; j++) this.distances[i][j] = 'x';
+            };
+        };
+
+        function populateDistances() { 
+
+            for (var i = 0; i < this.paths.length; i++) { 
+
+                var sourceNodeId = parseInt(this.paths[i].from);
+                var targetNodeId = parseInt(this.paths[i].to);
+                var sourceNode = this.nodes[sourceNodeId];
+                var targetNode = this.nodes[targetNodeId];
+
+                /** pythagoras to calculate distances **/
+
+                xDistance = Math.abs(sourceNode.x - targetNode.x);
+                yDistance = Math.abs(sourceNode.y - targetNode.y);
+                distance = parseInt(Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2)));
+
+                this.distances[sourceNodeId][targetNodeId] = distance;
+                this.distances[targetNodeId][sourceNodeId] = distance;
+            };
+
+        };
+
+        function dijkstra(start, end) { 
+
+            var nodeCount = this.distances.length,
+                infinity = 99999, // larger than largest distance in distances array
+                shortestPath = new Array(nodeCount),
+                nodeChecked = new Array(nodeCount),
+                pred = new Array(nodeCount);
+
+            // initialise data placeholders
+
+            for (var i = 0; i < nodeCount; i++) {
+                shortestPath[i] = infinity;
+                pred[i] = null;
+                nodeChecked[i] = false;
+            }
+
+            shortestPath[start] = 0;
+
+            for (var i = 0; i < nodeCount; i++) {
+
+                var minDist = infinity;
+                var closestNode = null;
+
+                for (var j = 0; j < nodeCount; j++) {
+
+                    if (!nodeChecked[j]) {
+                        if (shortestPath[j] <= minDist) {
+                            minDist = shortestPath[j];
+                            closestNode = j;
+                        }
+                    }
+                }
+
+                nodeChecked[closestNode] = true;
+
+                for (var k = 0; k < nodeCount; k++) {
+                    if (!nodeChecked[k]) {
+                        var nextDistance = distanceBetween(closestNode, k, this.distances);
+
+                        if ((parseInt(shortestPath[closestNode]) + parseInt(nextDistance)) < parseInt(shortestPath[k])) {
+                            soFar = parseInt(shortestPath[closestNode]);
+                            extra = parseInt(nextDistance);
+
+                            shortestPath[k] = soFar + extra;
+
+                            pred[k] = closestNode;
+                        }
+                    }
+                }
+
+            }
+
+            if (shortestPath[end] < infinity) {
+
+                var newPath = [];
+                var step = {
+                    target: parseInt(end)
+                };
+
+                var v = parseInt(end);
+
+                while (v >= 0) {
+                    v = pred[v];
+                    if (v !== null && v >= 0) {
+                        step.source = v;
+                        newPath.unshift(step);
+                        step = {
+                            target: v
+                        };
+                    }
+                }
+
+                totalDistance = shortestPath[end];
+
+                return {
+                    mesg: 'OK',
+                    path: newPath,
+                    source: start,
+                    target: end,
+                    distance: totalDistance
+                };
+            } else {
+                return {
+                    mesg: 'No path found',
+                    path: null,
+                    source: start,
+                    target: end,
+                    distance: 0
+                };
+            }
+
+            function distanceBetween(fromNode, toNode, distances) {
+
+                dist = distances[fromNode][toNode];
+
+                if (dist === 'x') dist = infinity;
+
+                return dist;
+            }
+
+        };
+
+    </script>
+
+</body>
+</html>
