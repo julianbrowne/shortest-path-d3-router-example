@@ -56,11 +56,14 @@
                 .attr("x2", function(d) { return nodes[d.to].x; })
                 .attr("y2", function(d) { return nodes[d.to].y; })
 
+        console.log(distances);
+
         pathsEnter
             .append("text")
-                .attr("x", function(d) { return nodes[d.from].x; })
-                .attr("y", function(d) { return nodes[d.from].y; })
-                .text("la");
+                .attr("x", function(d) { return parseInt( (nodes[d.from].x+nodes[d.to].x)/2 ) + 5; })
+                .attr("y", function(d) { return parseInt( (nodes[d.from].y+nodes[d.to].y)/2 ) - 5; })
+                .attr("class", "line-label")
+                .text(function(d,i) { return distances[d.from][d.to]; });
 
         var elementsNodeData = elements.data(nodes);
 

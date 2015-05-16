@@ -81,7 +81,7 @@ h1 {
     padding: 10px;
 }
 
-select {
+select { 
     width: 80px;
     direction: rtl;
 }
@@ -92,7 +92,7 @@ circle {
     stroke-width: 2;
 }
 
-.label {
+.label { 
     font-family: arial;
     stroke: #000000;
 }
@@ -100,4 +100,9 @@ circle {
 line { 
     stroke: #000000;
     stroke-width: 2;
+}
+
+.line-label { 
+    font-family: arial;
+    stroke: #000000;
 }
