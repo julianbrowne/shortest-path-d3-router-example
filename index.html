@@ -56,8 +56,6 @@
                 .attr("x2", function(d) { return nodes[d.to].x; })
                 .attr("y2", function(d) { return nodes[d.to].y; })
 
-        console.log(distances);
-
         pathsEnter
             .append("text")
                 .attr("x", function(d) { return parseInt( (nodes[d.from].x+nodes[d.to].x)/2 ) + 5; })
@@ -89,7 +87,6 @@
         function findRoute() { 
             var fromNode = fromInput.options[fromInput.selectedIndex].value;
             var toNode = toInput.options[toInput.selectedIndex].value;
-            console.log("routing from %s to %s", fromNode, toNode);
             var results = dijkstra(fromNode, toNode);
             printResults(results);
         };
@@ -184,13 +181,10 @@
                 for (var k = 0; k < nodeCount; k++) {
                     if (!nodeChecked[k]) {
                         var nextDistance = distanceBetween(closestNode, k, this.distances);
-
                         if ((parseInt(shortestPath[closestNode]) + parseInt(nextDistance)) < parseInt(shortestPath[k])) {
                             soFar = parseInt(shortestPath[closestNode]);
                             extra = parseInt(nextDistance);
-
                             shortestPath[k] = soFar + extra;
-
                             pred[k] = closestNode;
                         }
                     }
@@ -238,11 +232,8 @@
             }
 
             function distanceBetween(fromNode, toNode, distances) {
-
                 dist = distances[fromNode][toNode];
-
                 if (dist === 'x') dist = infinity;
-
                 return dist;
             }
 
